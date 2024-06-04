@@ -1,9 +1,9 @@
 
 CC=gcc
-CFLAGS=-Wall -Wextra -Wpedantic
+CFLAGS=-Wall -Wextra
 LDFLAGS=$(shell sdl2-config --cflags --libs)
 
-OBJ_FILES=main.c.o
+OBJ_FILES=main.c.o digits.c.o
 OBJS=$(addprefix obj/, $(OBJ_FILES))
 
 INSTALL_DIR=/usr/local/bin
