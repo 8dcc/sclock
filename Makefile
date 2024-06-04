@@ -3,11 +3,11 @@ CC=gcc
 CFLAGS=-Wall -Wextra -Wpedantic
 LDFLAGS=$(shell sdl2-config --cflags --libs)
 
-# TODO: Add object files and rename
 OBJ_FILES=main.c.o
 OBJS=$(addprefix obj/, $(OBJ_FILES))
 
-BIN=output.out
+INSTALL_DIR=/usr/local/bin
+BIN=sclock
 
 #-------------------------------------------------------------------------------
 
@@ -18,6 +18,10 @@ all: $(BIN)
 clean:
 	rm -f $(OBJS)
 	rm -f $(BIN)
+
+install: $(BIN)
+	mkdir -p $(INSTALL_DIR)
+	install -m 755 $(BIN) $(INSTALL_DIR)/$(BIN)
 
 #-------------------------------------------------------------------------------
 
