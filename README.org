@@ -1,26 +1,21 @@
-#+title: Title
+#+title: sclock
 #+options: toc:nil
 #+startup: showeverything
 #+author: 8dcc
 
-#+begin_comment
-*TODO*: Change project-name and title
-*TODO*: Change output.out in Makefile
-#+end_comment
-
-*Short description.*
+*Simple graphical clock.*
 
 #+TOC: headlines 2
 
 * Description
 
-Long description.
+This project was inspired by [[https://github.com/tsoding/sowon][tsoding/sowon]].
 
 * Building
 
 #+begin_src console
-$ git clone https://github.com/8dcc/project-name
-$ cd project-name
+$ git clone https://github.com/8dcc/sclock
+$ cd sclock
 $ make
 ...
 #+end_src
