@@ -1,0 +1,2 @@
+# Don't detect the exported GIMP source in GitHub's language detection
+/src/digits.c linguist-detectable=false
