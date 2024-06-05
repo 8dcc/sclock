@@ -3,8 +3,8 @@
 #define TYPES_H_ 1
 
 typedef enum {
-    PALETTE_DARK  = 0,
-    PALETTE_LIGHT = 1,
+    PALETTE_DARK = 0,
+    PALETTE_LIGHT,
 
     /* Last element */
     PALETTE_COUNT,
@@ -12,7 +12,8 @@ typedef enum {
 
 typedef enum {
     COLOR_BACKGROUND = 0,
-    COLOR_FOREGROUND = 1,
+    COLOR_GRID,
+    COLOR_FOREGROUND,
 
     /* Last element */
     COLOR_COUNT,

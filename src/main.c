@@ -8,7 +8,7 @@
 #define FPS 60
 
 #include "types.h"
-#include "config.h"
+#include "config.h" /* palettes, max_digit_scale, etc. */
 #include "digits.h"
 
 /*----------------------------------------------------------------------------*/
@@ -17,7 +17,9 @@
 static SDL_Window* g_window          = NULL;
 static SDL_Renderer* g_renderer      = NULL;
 static SDL_Texture* g_digits_texture = NULL;
-static EPalette g_palette            = default_palette;
+
+static bool g_draw_grid   = true;
+static EPalette g_palette = default_palette;
 
 /*----------------------------------------------------------------------------*/
 /* Misc helper functions */
@@ -54,6 +56,19 @@ static inline void set_texture_color(SDL_Texture* texture, uint32_t col) {
     SDL_SetTextureColorMod(texture, r, g, b);
 }
 
+static void draw_grid(void) {
+    if (!g_draw_grid || grid_step == 0)
+        return;
+
+    int win_w, win_h;
+    SDL_GetWindowSize(g_window, &win_w, &win_h);
+
+    const int step = grid_step + 1;
+    for (int y = grid_step; y < win_h; y += step)
+        for (int x = grid_step; x < win_w; x += step)
+            SDL_RenderDrawPoint(g_renderer, x, y);
+}
+
 static void draw_digit(int x, int y, float scale, int digit_idx) {
     const SDL_Rect src_rect = {
         digit_idx * DIGIT_WIDTH,
@@ -71,6 +86,18 @@ static void draw_digit(int x, int y, float scale, int digit_idx) {
     SDL_RenderCopy(g_renderer, g_digits_texture, &src_rect, &dst_rect);
 }
 
+/* Return the index for the `digits' texture depending on the character to be
+ * drawn. The index can be passed to the `draw_digit' function. */
+static int char_to_idx(char c) {
+    if (c >= '0' && c <= '9')
+        return c - '0';
+
+    if (c == ':')
+        return 10;
+
+    return -1;
+}
+
 /* Return the scale for the text size, depending on it's width, and the window
  * size. */
 static float get_text_scale(int win_w, int win_h, int txt_w) {
@@ -82,18 +109,6 @@ static float get_text_scale(int win_w, int win_h, int txt_w) {
                     : (float)win_h / (float)DIGIT_HEIGHT;
 
     return (scale < max_digit_scale) ? scale : max_digit_scale;
-}
-
-/* Return the index for the `digits' texture depending on the character to be
- * drawn. The index can be passed to the `draw_digit' function. */
-static int char_to_idx(char c) {
-    if (c >= '0' && c <= '9')
-        return c - '0';
-
-    if (c == ':')
-        return 10;
-
-    return -1;
 }
 
 static void draw_string(const char* str) {
@@ -203,6 +218,18 @@ int main(void) {
                             running = false;
                         } break;
 
+                        case SDL_SCANCODE_G: {
+                            g_draw_grid = !g_draw_grid;
+                        } break;
+
+                        case SDL_SCANCODE_T:
+                        case SDL_SCANCODE_P: {
+                            /* Cycle color palettes/themes */
+                            g_palette++;
+                            if (g_palette >= PALETTE_COUNT)
+                                g_palette = 0;
+                        } break;
+
                         default:
                             break;
                     }
@@ -217,7 +244,9 @@ int main(void) {
         set_render_color(g_renderer, palettes[g_palette][COLOR_BACKGROUND]);
         SDL_RenderClear(g_renderer);
 
-        /* TODO: Draw background texture */
+        /* Draw background texture */
+        set_render_color(g_renderer, palettes[g_palette][COLOR_GRID]);
+        draw_grid();
 
         /* TODO: Add modes */
         /* TODO: Change colors depending on mode status, etc. */
