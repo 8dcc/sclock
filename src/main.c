@@ -2,11 +2,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 #include <SDL2/SDL.h>
 
-#define WINDOW_W 640
-#define WINDOW_H 480
-#define FPS      60
+#define FPS 60
 
 #include "types.h"
 #include "config.h"
@@ -54,20 +53,72 @@ static inline void set_texture_color(SDL_Texture* texture, uint32_t col) {
 }
 
 static void draw_digit(SDL_Renderer* rend, SDL_Texture* texture, int x, int y,
-                       int digit_idx) {
+                       float scale, int digit_idx) {
     const SDL_Rect src_rect = {
         digit_idx * DIGIT_WIDTH,
         0,
         DIGIT_WIDTH,
-        digits.height,
+        DIGIT_HEIGHT,
     };
     const SDL_Rect dst_rect = {
         x,
         y,
-        DIGIT_WIDTH,
-        digits.height,
+        scale * (float)DIGIT_WIDTH,
+        scale * (float)DIGIT_HEIGHT,
     };
+
     SDL_RenderCopy(rend, texture, &src_rect, &dst_rect);
+}
+
+/* Return the scale for the text size, depending on it's width, and the window
+ * size. */
+static float get_text_scale(int win_w, int win_h, int txt_w) {
+    float aspect_ratio_txt = (float)txt_w / (float)DIGIT_HEIGHT;
+    float aspect_ratio_win = (float)win_w / (float)win_h;
+
+    float scale = (aspect_ratio_txt > aspect_ratio_win)
+                    ? (float)win_w / (float)txt_w
+                    : (float)win_h / (float)DIGIT_HEIGHT;
+
+    return (scale < MAX_DIGIT_SCALE) ? scale : MAX_DIGIT_SCALE;
+}
+
+/* Return the index for the `digits' texture depending on the character to be
+ * drawn. The index can be passed to the `draw_digit' function. */
+static int char_to_idx(char c) {
+    if (c >= '0' && c <= '9')
+        return c - '0';
+
+    if (c == ':')
+        return 10;
+
+    return -1;
+}
+
+static void draw_string(SDL_Renderer* rend, SDL_Texture* texture,
+                        const char* str) {
+    int win_w, win_h;
+    SDL_GetWindowSize(sdl_window, &win_w, &win_h);
+
+    const int txt_len     = strlen(str);
+    const int txt_w       = txt_len * DIGIT_WIDTH;
+    const float txt_scale = get_text_scale(win_w, win_h, txt_w);
+
+    const int scaled_digit_w = DIGIT_WIDTH * txt_scale;
+    const int scaled_txt_w   = txt_len * scaled_digit_w;
+    const int scaled_txt_h   = DIGIT_HEIGHT * txt_scale;
+
+    int x = (win_w / 2) - (scaled_txt_w / 2);
+    int y = (win_h / 2) - (scaled_txt_h / 2);
+    for (int i = 0; i < txt_len; i++) {
+        int digit_idx = char_to_idx(str[i]);
+        if (digit_idx < 0)
+            continue;
+
+        draw_digit(rend, texture, x, y, txt_scale, digit_idx);
+
+        x += scaled_digit_w;
+    }
 }
 
 /*----------------------------------------------------------------------------*/
@@ -76,10 +127,13 @@ int main(void) {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
         die("Unable to start SDL.");
 
+    const int window_w = DIGIT_WIDTH * (sizeof("00:00:00") - 1);
+    const int window_h = DIGIT_HEIGHT;
+
     /* Create SDL window */
     sdl_window =
       SDL_CreateWindow("sclock", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       WINDOW_W, WINDOW_H, SDL_WINDOW_RESIZABLE);
+                       window_w, window_h, SDL_WINDOW_RESIZABLE);
     if (sdl_window == NULL)
         die("Error creating SDL window.");
 
@@ -89,6 +143,10 @@ int main(void) {
                          SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (sdl_renderer == NULL)
         die("Error creating SDL renderer.");
+
+    /* Use the best scaling quality of the texture */
+    if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best") != SDL_TRUE)
+        die("Could not set RENDER_SCALE_QUALITY hint.");
 
     /* Create the surface and texture for the digits */
     SDL_Surface* digits_surface =
@@ -103,6 +161,10 @@ int main(void) {
       SDL_CreateTextureFromSurface(sdl_renderer, digits_surface);
     if (!digits_texture)
         die("Error creating texture from RGB surface.");
+
+    static char time_str[]   = "00:00:00";
+    static char title_str[]  = "00:00:00 - sclock";
+    static char prev_title[] = "00:00:00 - sclock";
 
     /* Main loop */
     bool running = true;
@@ -136,23 +198,28 @@ int main(void) {
         set_render_color(sdl_renderer, palettes[palette][COLOR_BACKGROUND]);
         SDL_RenderClear(sdl_renderer);
 
-        /* TODO: Change colors depending on more conditions */
+        /* TODO: Draw background texture */
+
+        /* TODO: Add modes */
+        /* TODO: Change colors depending on mode status, etc. */
         set_texture_color(digits_texture, palettes[palette][COLOR_FOREGROUND]);
 
-        /*
-         * TODO: Calculate width and height of digits depending on the size and
-         * aspect ratio of the window.
-         * TODO: Calulate positions dinamically depending on width of previous
-         * character.
-         * TODO: Draw actual time
-         */
-        draw_digit(sdl_renderer, digits_texture, 30, 30, 7);
+        time_t t      = time(NULL);
+        struct tm* tm = localtime(&t);
+        int hours     = tm->tm_hour;
+        int minutes   = tm->tm_min;
+        int seconds   = tm->tm_sec;
+        snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", hours, minutes,
+                 seconds);
 
-#if 0
-        uint64_t hours = time / 60 / 60;
-        uint64_t minutes = time / 60 % 60;
-        uint64_t seconds = time % 60;
-#endif
+        draw_string(sdl_renderer, digits_texture, time_str);
+
+        /* Change window title to show time */
+        snprintf(title_str, sizeof(title_str), "%02d:%02d:%02d - sclock", hours,
+                 minutes, seconds);
+        if (strcmp(title_str, prev_title) != 0)
+            SDL_SetWindowTitle(sdl_window, title_str);
+        memcpy(title_str, prev_title, sizeof(title_str));
 
         /* Send to renderer and delay depending on FPS */
         SDL_RenderPresent(sdl_renderer);
