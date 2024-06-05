@@ -230,6 +230,18 @@ int main(void) {
                                 g_palette = 0;
                         } break;
 
+                        case SDL_SCANCODE_F11:
+                        case SDL_SCANCODE_F: {
+                            /* Toggle fullscreen */
+                            uint32_t new_flags =
+                              (SDL_GetWindowFlags(g_window) &
+                               SDL_WINDOW_FULLSCREEN_DESKTOP)
+                                ? 0
+                                : SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+                            SDL_SetWindowFullscreen(g_window, new_flags);
+                        } break;
+
                         default:
                             break;
                     }
