@@ -11,6 +11,15 @@
 
 This project was inspired by [[https://github.com/tsoding/sowon][tsoding/sowon]].
 
+* Keybinds
+
+| Key    | Description                         |
+|--------+-------------------------------------|
+| ~q~, ~ESC~ | Quit the program                    |
+| ~t~, ~p~   | Change color palette (theme)        |
+| ~g~      | Toggle the grid (dotted background) |
+| ~f~, ~F11~ | Toggle full-screen                  |
+
 * Building
 
 #+begin_src console
