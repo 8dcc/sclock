@@ -1,6 +1,5 @@
 
-/* sclock user configuration */
-
+/* Color palettes for the app */
 const Color palettes[PALETTE_COUNT][COLOR_COUNT] = {
     [PALETTE_DARK] = {
         [COLOR_BACKGROUND] = 0x000000,
@@ -12,4 +11,8 @@ const Color palettes[PALETTE_COUNT][COLOR_COUNT] = {
     },
 };
 
+/* The default palette to use */
 const EPalette default_palette = PALETTE_LIGHT;
+
+/* The maximum scale for the digit size when rendering */
+const float max_digit_scale = 1.0;

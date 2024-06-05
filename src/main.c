@@ -80,7 +80,7 @@ static float get_text_scale(int win_w, int win_h, int txt_w) {
                     ? (float)win_w / (float)txt_w
                     : (float)win_h / (float)DIGIT_HEIGHT;
 
-    return (scale < MAX_DIGIT_SCALE) ? scale : MAX_DIGIT_SCALE;
+    return (scale < max_digit_scale) ? scale : max_digit_scale;
 }
 
 /* Return the index for the `digits' texture depending on the character to be

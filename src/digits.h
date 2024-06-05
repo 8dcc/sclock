@@ -5,7 +5,6 @@
 #define DIGIT_COUNT 11 /* '0-9' and ':' */
 #define DIGIT_WIDTH (digits.width / DIGIT_COUNT)
 #define DIGIT_HEIGHT digits.height
-#define MAX_DIGIT_SCALE 1.0f
 
 typedef struct {
     unsigned int width;
