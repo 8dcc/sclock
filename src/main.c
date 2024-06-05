@@ -14,8 +14,10 @@
 /*----------------------------------------------------------------------------*/
 /* Globals */
 
-static SDL_Window* sdl_window = NULL;
-static EPalette palette       = default_palette;
+static SDL_Window* g_window          = NULL;
+static SDL_Renderer* g_renderer      = NULL;
+static SDL_Texture* g_digits_texture = NULL;
+static EPalette g_palette            = default_palette;
 
 /*----------------------------------------------------------------------------*/
 /* Misc helper functions */
@@ -27,8 +29,8 @@ static void die(const char* fmt, ...) {
     vfprintf(stderr, fmt, va);
     putc('\n', stderr);
 
-    if (sdl_window != NULL)
-        SDL_DestroyWindow(sdl_window);
+    if (g_window != NULL)
+        SDL_DestroyWindow(g_window);
 
     SDL_Quit();
     exit(1);
@@ -52,8 +54,7 @@ static inline void set_texture_color(SDL_Texture* texture, uint32_t col) {
     SDL_SetTextureColorMod(texture, r, g, b);
 }
 
-static void draw_digit(SDL_Renderer* rend, SDL_Texture* texture, int x, int y,
-                       float scale, int digit_idx) {
+static void draw_digit(int x, int y, float scale, int digit_idx) {
     const SDL_Rect src_rect = {
         digit_idx * DIGIT_WIDTH,
         0,
@@ -67,7 +68,7 @@ static void draw_digit(SDL_Renderer* rend, SDL_Texture* texture, int x, int y,
         scale * (float)DIGIT_HEIGHT,
     };
 
-    SDL_RenderCopy(rend, texture, &src_rect, &dst_rect);
+    SDL_RenderCopy(g_renderer, g_digits_texture, &src_rect, &dst_rect);
 }
 
 /* Return the scale for the text size, depending on it's width, and the window
@@ -95,10 +96,9 @@ static int char_to_idx(char c) {
     return -1;
 }
 
-static void draw_string(SDL_Renderer* rend, SDL_Texture* texture,
-                        const char* str) {
+static void draw_string(const char* str) {
     int win_w, win_h;
-    SDL_GetWindowSize(sdl_window, &win_w, &win_h);
+    SDL_GetWindowSize(g_window, &win_w, &win_h);
 
     const int txt_len     = strlen(str);
     const int txt_w       = txt_len * DIGIT_WIDTH;
@@ -115,7 +115,7 @@ static void draw_string(SDL_Renderer* rend, SDL_Texture* texture,
         if (digit_idx < 0)
             continue;
 
-        draw_digit(rend, texture, x, y, txt_scale, digit_idx);
+        draw_digit(x, y, txt_scale, digit_idx);
 
         x += scaled_digit_w;
     }
@@ -131,17 +131,17 @@ int main(void) {
     const int window_h = DIGIT_HEIGHT;
 
     /* Create SDL window */
-    sdl_window =
+    g_window =
       SDL_CreateWindow("sclock", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                        window_w, window_h, SDL_WINDOW_RESIZABLE);
-    if (sdl_window == NULL)
+    if (g_window == NULL)
         die("Error creating SDL window.");
 
     /* Create SDL renderer */
-    SDL_Renderer* sdl_renderer =
-      SDL_CreateRenderer(sdl_window, -1,
+    g_renderer =
+      SDL_CreateRenderer(g_window, -1,
                          SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (sdl_renderer == NULL)
+    if (g_renderer == NULL)
         die("Error creating SDL renderer.");
 
     /* Use the best scaling quality of the texture */
@@ -157,9 +157,8 @@ int main(void) {
     if (!digits_surface)
         die("Error creating RGB surface from PNG data.");
 
-    SDL_Texture* digits_texture =
-      SDL_CreateTextureFromSurface(sdl_renderer, digits_surface);
-    if (!digits_texture)
+    g_digits_texture = SDL_CreateTextureFromSurface(g_renderer, digits_surface);
+    if (!g_digits_texture)
         die("Error creating texture from RGB surface.");
 
     static char time_str[]   = "00:00:00";
@@ -195,14 +194,15 @@ int main(void) {
         }
 
         /* Clear window */
-        set_render_color(sdl_renderer, palettes[palette][COLOR_BACKGROUND]);
-        SDL_RenderClear(sdl_renderer);
+        set_render_color(g_renderer, palettes[g_palette][COLOR_BACKGROUND]);
+        SDL_RenderClear(g_renderer);
 
         /* TODO: Draw background texture */
 
         /* TODO: Add modes */
         /* TODO: Change colors depending on mode status, etc. */
-        set_texture_color(digits_texture, palettes[palette][COLOR_FOREGROUND]);
+        set_texture_color(g_digits_texture,
+                          palettes[g_palette][COLOR_FOREGROUND]);
 
         time_t t      = time(NULL);
         struct tm* tm = localtime(&t);
@@ -212,22 +212,22 @@ int main(void) {
         snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", hours, minutes,
                  seconds);
 
-        draw_string(sdl_renderer, digits_texture, time_str);
+        draw_string(time_str);
 
         /* Change window title to show time */
         snprintf(title_str, sizeof(title_str), "%02d:%02d:%02d - sclock", hours,
                  minutes, seconds);
         if (strcmp(title_str, prev_title) != 0)
-            SDL_SetWindowTitle(sdl_window, title_str);
+            SDL_SetWindowTitle(g_window, title_str);
         memcpy(title_str, prev_title, sizeof(title_str));
 
         /* Send to renderer and delay depending on FPS */
-        SDL_RenderPresent(sdl_renderer);
+        SDL_RenderPresent(g_renderer);
         SDL_Delay(1000 / FPS);
     }
 
-    SDL_DestroyRenderer(sdl_renderer);
-    SDL_DestroyWindow(sdl_window);
+    SDL_DestroyRenderer(g_renderer);
+    SDL_DestroyWindow(g_window);
     SDL_Quit();
 
     return 0;
