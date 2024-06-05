@@ -121,6 +121,30 @@ static void draw_string(const char* str) {
     }
 }
 
+static void draw_time(long hours, long minutes, long seconds) {
+    static char time_str[] = "00:00:00";
+
+    if (hours > 99)
+        hours = 99;
+    else if (hours < 0)
+        hours = 0;
+
+    if (minutes > 59)
+        minutes = 59;
+    else if (minutes < 0)
+        minutes = 0;
+
+    if (seconds > 59)
+        seconds = 59;
+    else if (seconds < 0)
+        seconds = 0;
+
+    snprintf(time_str, sizeof(time_str), "%02lu:%02lu:%02lu", hours, minutes,
+             seconds);
+
+    draw_string(time_str);
+}
+
 /*----------------------------------------------------------------------------*/
 
 int main(void) {
@@ -160,10 +184,6 @@ int main(void) {
     g_digits_texture = SDL_CreateTextureFromSurface(g_renderer, digits_surface);
     if (!g_digits_texture)
         die("Error creating texture from RGB surface.");
-
-    static char time_str[]   = "00:00:00";
-    static char title_str[]  = "00:00:00 - sclock";
-    static char prev_title[] = "00:00:00 - sclock";
 
     /* Main loop */
     bool running = true;
@@ -209,12 +229,13 @@ int main(void) {
         int hours     = tm->tm_hour;
         int minutes   = tm->tm_min;
         int seconds   = tm->tm_sec;
-        snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", hours, minutes,
-                 seconds);
 
-        draw_string(time_str);
+        /* Draw the time */
+        draw_time(hours, minutes, seconds);
 
         /* Change window title to show time */
+        static char title_str[]  = "00:00:00 - sclock";
+        static char prev_title[] = "00:00:00 - sclock";
         snprintf(title_str, sizeof(title_str), "%02d:%02d:%02d - sclock", hours,
                  minutes, seconds);
         if (strcmp(title_str, prev_title) != 0)
