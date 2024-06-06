@@ -11,6 +11,22 @@
 
 This project was inspired by [[https://github.com/tsoding/sowon][tsoding/sowon]].
 
+* Building
+
+To build the project, simply clone the repository and run =make= or =make
+install=. Then run =./sclock=.
+
+#+begin_src console
+$ git clone https://github.com/8dcc/sclock
+$ cd sclock
+$ make
+...
+$ make install
+...
+$ ./sclock --help
+...
+#+end_src
+
 * Modes
 
 You can change the mode by providing a keyword when launching the program:
@@ -21,10 +37,15 @@ You can change the mode by providing a keyword when launching the program:
 
 These are the supported modes:
 
-| Keyword   | Description                            |
-|-----------+----------------------------------------|
-| ~clock~     | Display the current time. Default mode |
-| ~stopwatch~ | Start counting from zero               |
+| Keyword   | Description                                                                       |
+|-----------+-----------------------------------------------------------------------------------|
+| ~clock~     | Display the current time. Default mode                                            |
+| ~stopwatch~ | Start counting from zero                                                          |
+| ~pomodoro~  | Same as ~stopwatch~, but the text color changes depending on the [[https://en.wikipedia.org/wiki/Pomodoro_Technique][Pomodoro cycle]] (1) |
+
+Notes:
+1. In this case, ~pomodoro~ cycle consists of 25 minutes of work and 5 of
+   rest. After 4 work cycles, the rest is 30 minutes instead of 5.
 
 * Keybinds
 
@@ -39,15 +60,15 @@ These are the keybinds common for all modes:
 
 These are the keybinds specific to the /stopwatch/ mode:
 
-| Key | Description                   |
-|-----+-------------------------------|
-| ~SPC~ | Pause or resume the stopwatch |
+| Key | Description                            |
+|-----+----------------------------------------|
+| ~SPC~ | Pause or resume the stopwatch/pomodoro |
 
-* Building
+* Customizing
 
-#+begin_src console
-$ git clone https://github.com/8dcc/sclock
-$ cd sclock
-$ make
-...
-#+end_src
+You can easily change the colors and behavior of the program by editing the
+[[src/config.h]] file.
+
+To change the font, you can edit the [[digits.xcf]] file with [[https://www.gimp.org/][GIMP]] and export the
+[[https://en.wikipedia.org/wiki/Texture_atlas][atlas]] as a C source file. You will need to modify it a bit, so it includes the
+=digits.h= header and uses the =GimpImage= type.
