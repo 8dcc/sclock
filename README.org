@@ -11,7 +11,24 @@
 
 This project was inspired by [[https://github.com/tsoding/sowon][tsoding/sowon]].
 
+* Modes
+
+You can change the mode by providing a keyword when launching the program:
+
+#+begin_src bash
+./sclock <keyword>
+#+end_src
+
+These are the supported modes:
+
+| Keyword   | Description                            |
+|-----------+----------------------------------------|
+| ~clock~     | Display the current time. Default mode |
+| ~stopwatch~ | Start counting from zero               |
+
 * Keybinds
+
+These are the keybinds common for all modes:
 
 | Key    | Description                         |
 |--------+-------------------------------------|
@@ -19,6 +36,12 @@ This project was inspired by [[https://github.com/tsoding/sowon][tsoding/sowon]]
 | ~t~, ~p~   | Change color palette (theme)        |
 | ~g~      | Toggle the grid (dotted background) |
 | ~f~, ~F11~ | Toggle full-screen                  |
+
+These are the keybinds specific to the /stopwatch/ mode:
+
+| Key | Description                   |
+|-----+-------------------------------|
+| ~SPC~ | Pause or resume the stopwatch |
 
 * Building
 
