@@ -2,10 +2,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include <SDL2/SDL.h>
 
-#define FPS 60
+#define FPS       60
+#define MAX_TITLE 255
 
 #include "types.h"
 #include "config.h" /* palettes, max_digit_scale, etc. */
@@ -36,6 +38,19 @@ static void die(const char* fmt, ...) {
 
     SDL_Quit();
     exit(1);
+}
+
+static unsigned long time_in_seconds(void) {
+    /* Get the current time */
+    time_t t      = time(NULL);
+    struct tm* tm = localtime(&t);
+
+    /* Convert to seconds */
+    unsigned long result = 0;
+    result += tm->tm_hour * 60 * 60;
+    result += tm->tm_min * 60;
+    result += tm->tm_sec;
+    return result;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -136,7 +151,7 @@ static void draw_string(const char* str) {
     }
 }
 
-static void draw_time(long hours, long minutes, long seconds) {
+static void draw_time(int hours, int minutes, int seconds) {
     static char time_str[] = "00:00:00";
 
     if (hours > 99)
@@ -154,7 +169,7 @@ static void draw_time(long hours, long minutes, long seconds) {
     else if (seconds < 0)
         seconds = 0;
 
-    snprintf(time_str, sizeof(time_str), "%02lu:%02lu:%02lu", hours, minutes,
+    snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", hours, minutes,
              seconds);
 
     draw_string(time_str);
@@ -162,7 +177,17 @@ static void draw_time(long hours, long minutes, long seconds) {
 
 /*----------------------------------------------------------------------------*/
 
-int main(void) {
+int main(int argc, char** argv) {
+    EMode mode            = MODE_CLOCK;
+    bool stopwatch_paused = false;
+
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "clock"))
+            mode = MODE_CLOCK;
+        else if (!strcmp(argv[i], "stopwatch"))
+            mode = MODE_STOPWATCH;
+    }
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
         die("Unable to start SDL.");
 
@@ -199,6 +224,17 @@ int main(void) {
     g_digits_texture = SDL_CreateTextureFromSurface(g_renderer, digits_surface);
     if (!g_digits_texture)
         die("Error creating texture from RGB surface.");
+
+    /* Time when we drawed the last frame, but not necessarily the content we
+     * drawed. Used to check the passed time independently of runtime
+     * performance. */
+    unsigned long last_time = time_in_seconds();
+
+    /* Time in seconds that we actually rendered in the last frame. Used for
+     * allowing pauses in the stopwatch, for example. */
+    unsigned long last_displayed = (mode == MODE_CLOCK)       ? last_time
+                                   : (mode == MODE_STOPWATCH) ? 0
+                                                              : 0;
 
     /* Main loop */
     bool running = true;
@@ -242,6 +278,11 @@ int main(void) {
                             SDL_SetWindowFullscreen(g_window, new_flags);
                         } break;
 
+                        case SDL_SCANCODE_SPACE: {
+                            if (mode == MODE_STOPWATCH)
+                                stopwatch_paused = !stopwatch_paused;
+                        } break;
+
                         default:
                             break;
                     }
@@ -260,25 +301,56 @@ int main(void) {
         set_render_color(g_renderer, palettes[g_palette][COLOR_GRID]);
         draw_grid();
 
-        /* TODO: Add modes */
-        /* TODO: Change colors depending on mode status, etc. */
-        set_texture_color(g_digits_texture,
-                          palettes[g_palette][COLOR_FOREGROUND]);
+        unsigned long now            = time_in_seconds();
+        unsigned long displayed_time = 0;
 
-        time_t t      = time(NULL);
-        struct tm* tm = localtime(&t);
-        int hours     = tm->tm_hour;
-        int minutes   = tm->tm_min;
-        int seconds   = tm->tm_sec;
+        switch (mode) {
+            case MODE_CLOCK: {
+                set_texture_color(g_digits_texture,
+                                  palettes[g_palette][COLOR_FOREGROUND]);
 
-        /* Draw the time */
-        draw_time(hours, minutes, seconds);
+                displayed_time = now;
+            } break;
 
-        /* Change window title to show time */
-        static char title_str[]  = "00:00:00 - sclock";
-        static char prev_title[] = "00:00:00 - sclock";
-        snprintf(title_str, sizeof(title_str), "%02d:%02d:%02d - sclock", hours,
-                 minutes, seconds);
+            case MODE_STOPWATCH: {
+                /* Change foreground color depending on status */
+                uint32_t color = (stopwatch_paused)
+                                   ? palettes[g_palette][COLOR_PAUSED]
+                                   : palettes[g_palette][COLOR_FOREGROUND];
+                set_texture_color(g_digits_texture, color);
+
+                /* Time has passed */
+                if (!stopwatch_paused && now > last_time)
+                    displayed_time = last_displayed + now - last_time;
+                else
+                    displayed_time = last_displayed;
+            } break;
+
+            default:
+                break;
+        }
+
+        /* Convert the time and render it */
+        unsigned int h = displayed_time / (60 * 60);
+        unsigned int m = displayed_time / 60 % 60;
+        unsigned int s = displayed_time % 60;
+        draw_time(h, m, s);
+
+        /* Save the current time and the time we actually rendered. */
+        last_time      = now;
+        last_displayed = displayed_time;
+
+        /* Status for the window title */
+        const char* status_str =
+          (mode == MODE_STOPWATCH && stopwatch_paused) ? "(paused)" : "";
+
+        /* Save the window title */
+        static char title_str[MAX_TITLE] = "";
+        snprintf(title_str, MAX_TITLE, "%02d:%02d:%02d - sclock %s", h, m, s,
+                 status_str);
+
+        /* If the title changed, update it */
+        static char prev_title[MAX_TITLE] = "";
         if (strcmp(title_str, prev_title) != 0)
             SDL_SetWindowTitle(g_window, title_str);
         memcpy(title_str, prev_title, sizeof(title_str));

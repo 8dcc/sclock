@@ -5,11 +5,13 @@ const Color palettes[PALETTE_COUNT][COLOR_COUNT] = {
         [COLOR_BACKGROUND] = 0x000000,
         [COLOR_GRID]       = 0x333333,
         [COLOR_FOREGROUND] = 0xFFFFFF,
+        [COLOR_PAUSED]     = 0xBBBBBB,
     },
     [PALETTE_LIGHT] = {
         [COLOR_BACKGROUND] = 0xFFFFFF,
         [COLOR_GRID]       = 0xAAAAAA,
         [COLOR_FOREGROUND] = 0x000000,
+        [COLOR_PAUSED]     = 0x444444,
     },
 };
 

@@ -3,6 +3,11 @@
 #define TYPES_H_ 1
 
 typedef enum {
+    MODE_CLOCK = 0,
+    MODE_STOPWATCH,
+} EMode;
+
+typedef enum {
     PALETTE_DARK = 0,
     PALETTE_LIGHT,
 
@@ -14,6 +19,7 @@ typedef enum {
     COLOR_BACKGROUND = 0,
     COLOR_GRID,
     COLOR_FOREGROUND,
+    COLOR_PAUSED,
 
     /* Last element */
     COLOR_COUNT,
