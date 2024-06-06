@@ -197,6 +197,16 @@ int main(int argc, char** argv) {
     bool stopwatch_paused = false;
 
     for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "--help")) {
+            fprintf(stderr,
+                    "Usage:\n"
+                    "  %s [clock]\n"
+                    "  %s stopwatch\n"
+                    "  %s pomodoro\n",
+                    argv[0], argv[0], argv[0]);
+            return 1;
+        }
+
         if (!strcmp(argv[i], "clock"))
             mode = MODE_CLOCK;
         else if (!strcmp(argv[i], "stopwatch"))
