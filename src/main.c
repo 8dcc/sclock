@@ -53,6 +53,21 @@ static unsigned long time_in_seconds(void) {
     return result;
 }
 
+static bool in_pomodoro(int seconds) {
+    int minutes = seconds / 60;
+
+    /* The position in the current 145 minute cycle */
+    int minutes_in_clycle = minutes % ((25 + 5) * 3 + 25 + 30);
+
+    /* Big rests start at minute 115 and end at minute 140 */
+    bool in_long_rest = (minutes_in_clycle % 140 >= 115);
+
+    /* Short rests start at minute 25 and end at minute 30 */
+    bool in_short_rest = (minutes_in_clycle % 30 >= 25);
+
+    return !in_long_rest && !in_short_rest;
+}
+
 /*----------------------------------------------------------------------------*/
 /* SDL helper functions */
 
@@ -186,6 +201,8 @@ int main(int argc, char** argv) {
             mode = MODE_CLOCK;
         else if (!strcmp(argv[i], "stopwatch"))
             mode = MODE_STOPWATCH;
+        else if (!strcmp(argv[i], "pomodoro"))
+            mode = MODE_POMODORO;
     }
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
@@ -279,7 +296,7 @@ int main(int argc, char** argv) {
                         } break;
 
                         case SDL_SCANCODE_SPACE: {
-                            if (mode == MODE_STOPWATCH)
+                            if (mode == MODE_STOPWATCH || mode == MODE_POMODORO)
                                 stopwatch_paused = !stopwatch_paused;
                         } break;
 
@@ -304,31 +321,58 @@ int main(int argc, char** argv) {
         unsigned long now            = time_in_seconds();
         unsigned long displayed_time = 0;
 
+        /* Foreground color will change depending on mode status */
+        uint32_t color = palettes[g_palette][COLOR_FOREGROUND];
+
+        /* Status string for the window title, set by each mode */
+        const char* status_str;
+
         switch (mode) {
             case MODE_CLOCK: {
-                set_texture_color(g_digits_texture,
-                                  palettes[g_palette][COLOR_FOREGROUND]);
-
                 displayed_time = now;
             } break;
 
-            case MODE_STOPWATCH: {
-                /* Change foreground color depending on status */
-                uint32_t color = (stopwatch_paused)
-                                   ? palettes[g_palette][COLOR_PAUSED]
-                                   : palettes[g_palette][COLOR_FOREGROUND];
-                set_texture_color(g_digits_texture, color);
-
+            case MODE_POMODORO: {
                 /* Time has passed */
                 if (!stopwatch_paused && now > last_time)
                     displayed_time = last_displayed + now - last_time;
                 else
                     displayed_time = last_displayed;
+
+                /* Change the color and status if we are paused or in a pomodoro
+                 * rest */
+                if (stopwatch_paused) {
+                    color      = palettes[g_palette][COLOR_PAUSED];
+                    status_str = "(paused)";
+                } else if (in_pomodoro(displayed_time)) {
+                    color      = palettes[g_palette][COLOR_POMODORO_WORK];
+                    status_str = "(work)";
+                } else {
+                    color      = palettes[g_palette][COLOR_POMODORO_REST];
+                    status_str = "(rest)";
+                }
+            } break;
+
+            case MODE_STOPWATCH: {
+                /* Time has passed */
+                if (!stopwatch_paused && now > last_time)
+                    displayed_time = last_displayed + now - last_time;
+                else
+                    displayed_time = last_displayed;
+
+                /* Change the color and status if we are paused */
+                if (stopwatch_paused) {
+                    color      = palettes[g_palette][COLOR_PAUSED];
+                    status_str = "(pause)";
+                }
             } break;
 
             default:
                 break;
         }
+
+        /* Apply the color */
+        set_texture_color(g_digits_texture, color);
 
         /* Convert the time and render it */
         unsigned int h = displayed_time / (60 * 60);
@@ -339,10 +383,6 @@ int main(int argc, char** argv) {
         /* Save the current time and the time we actually rendered. */
         last_time      = now;
         last_displayed = displayed_time;
-
-        /* Status for the window title */
-        const char* status_str =
-          (mode == MODE_STOPWATCH && stopwatch_paused) ? "(paused)" : "";
 
         /* Save the window title */
         static char title_str[MAX_TITLE] = "";

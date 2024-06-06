@@ -2,16 +2,20 @@
 /* Color palettes for the app */
 const Color palettes[PALETTE_COUNT][COLOR_COUNT] = {
     [PALETTE_DARK] = {
-        [COLOR_BACKGROUND] = 0x000000,
-        [COLOR_GRID]       = 0x333333,
-        [COLOR_FOREGROUND] = 0xFFFFFF,
-        [COLOR_PAUSED]     = 0xBBBBBB,
+        [COLOR_BACKGROUND]    = 0x000000,
+        [COLOR_GRID]          = 0x333333,
+        [COLOR_FOREGROUND]    = 0xFFFFFF,
+        [COLOR_PAUSED]        = 0xBBBBBB,
+        [COLOR_POMODORO_WORK] = 0xAB3131,
+        [COLOR_POMODORO_REST] = 0x507B58,
     },
     [PALETTE_LIGHT] = {
-        [COLOR_BACKGROUND] = 0xFFFFFF,
-        [COLOR_GRID]       = 0xAAAAAA,
-        [COLOR_FOREGROUND] = 0x000000,
-        [COLOR_PAUSED]     = 0x444444,
+        [COLOR_BACKGROUND]    = 0xFFFFFF,
+        [COLOR_GRID]          = 0xAAAAAA,
+        [COLOR_FOREGROUND]    = 0x000000,
+        [COLOR_PAUSED]        = 0x444444,
+        [COLOR_POMODORO_WORK] = 0xAB3131,
+        [COLOR_POMODORO_REST] = 0x507B58,
     },
 };
 

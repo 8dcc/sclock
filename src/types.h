@@ -5,6 +5,7 @@
 typedef enum {
     MODE_CLOCK = 0,
     MODE_STOPWATCH,
+    MODE_POMODORO,
 } EMode;
 
 typedef enum {
@@ -20,6 +21,8 @@ typedef enum {
     COLOR_GRID,
     COLOR_FOREGROUND,
     COLOR_PAUSED,
+    COLOR_POMODORO_WORK,
+    COLOR_POMODORO_REST,
 
     /* Last element */
     COLOR_COUNT,
