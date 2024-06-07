@@ -58,11 +58,12 @@ These are the keybinds common for all modes:
 | ~g~      | Toggle the grid (dotted background) |
 | ~f~, ~F11~ | Toggle full-screen                  |
 
-These are the keybinds specific to the /stopwatch/ mode:
+These are the keybinds specific to the /stopwatch/ and /pomodoro/ modes:
 
-| Key | Description                            |
-|-----+----------------------------------------|
-| ~SPC~ | Pause or resume the stopwatch/pomodoro |
+| Key | Description                   |
+|-----+-------------------------------|
+| ~SPC~ | Pause or resume the stopwatch |
+| ~r~   | Reset the stopwatch to zero   |
 
 * Customizing
 

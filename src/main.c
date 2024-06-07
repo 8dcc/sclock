@@ -310,6 +310,12 @@ int main(int argc, char** argv) {
                                 stopwatch_paused = !stopwatch_paused;
                         } break;
 
+                        case SDL_SCANCODE_R: {
+                            /* Reset the stopwatch */
+                            if (mode == MODE_STOPWATCH || mode == MODE_POMODORO)
+                                last_displayed = 0;
+                        } break;
+
                         default:
                             break;
                     }
