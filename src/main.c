@@ -59,13 +59,13 @@ static bool in_pomodoro(int seconds) {
     /* The position in the current 145 minute cycle */
     int minutes_in_clycle = minutes % ((25 + 5) * 3 + 25 + 30);
 
-    /* Big rests start at minute 115 and end at minute 140 */
-    bool in_long_rest = (minutes_in_clycle % 140 >= 115);
+    /* Big breaks start at minute 115 and end at minute 145 */
+    bool in_long_break = (minutes_in_clycle >= 115);
 
-    /* Short rests start at minute 25 and end at minute 30 */
-    bool in_short_rest = (minutes_in_clycle % 30 >= 25);
+    /* Short breaks start at minute 25 and end at minute 30 */
+    bool in_short_break = (minutes_in_clycle % 30 >= 25);
 
-    return !in_long_rest && !in_short_rest;
+    return !in_long_break && !in_short_break;
 }
 
 /*----------------------------------------------------------------------------*/
