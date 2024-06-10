@@ -416,6 +416,7 @@ int main(int argc, char** argv) {
         SDL_Delay(1000 / FPS);
     }
 
+    SDL_FreeSurface(digits_surface);
     SDL_DestroyRenderer(g_renderer);
     SDL_DestroyWindow(g_window);
     SDL_Quit();
