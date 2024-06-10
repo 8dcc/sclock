@@ -9,6 +9,19 @@
 #define FPS       60
 #define MAX_TITLE 255
 
+/* RGBA masks change depending on endianness */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#define MASK_R 0xFF000000
+#define MASK_G 0x00FF0000
+#define MASK_B 0x0000FF00
+#define MASK_A 0x000000FF
+#else
+#define MASK_R 0x000000FF
+#define MASK_G 0x0000FF00
+#define MASK_B 0x00FF0000
+#define MASK_A 0xFF000000
+#endif
+
 #include "types.h"
 #include "config.h" /* palettes, max_digit_scale, etc. */
 #include "digits.h"
@@ -243,8 +256,8 @@ int main(int argc, char** argv) {
     SDL_Surface* digits_surface =
       SDL_CreateRGBSurfaceFrom(digits.pixel_data, digits.width, digits.height,
                                digits.bytes_per_pixel * 8,
-                               digits.width * digits.bytes_per_pixel,
-                               0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+                               digits.width * digits.bytes_per_pixel, MASK_R,
+                               MASK_G, MASK_B, MASK_A);
     if (!digits_surface)
         die("Error creating RGB surface from PNG data.");
 
