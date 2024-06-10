@@ -341,7 +341,7 @@ int main(int argc, char** argv) {
         uint32_t color = palettes[g_palette][COLOR_FOREGROUND];
 
         /* Status string for the window title, set by each mode */
-        const char* status_str;
+        const char* status_str = "";
 
         switch (mode) {
             case MODE_CLOCK: {
