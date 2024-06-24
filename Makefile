@@ -11,7 +11,7 @@ BIN=sclock
 
 #-------------------------------------------------------------------------------
 
-.PHONY: clean all
+.PHONY: clean all install
 
 all: $(BIN)
 

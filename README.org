@@ -68,8 +68,8 @@ These are the keybinds specific to the /stopwatch/ and /pomodoro/ modes:
 * Customizing
 
 You can easily change the colors and behavior of the program by editing the
-[[src/config.h]] file.
+[[./src/config.h][src/config.h]] file.
 
-To change the font, you can edit the [[digits.xcf]] file with [[https://www.gimp.org/][GIMP]] and export the
+To change the font, you can edit the [[./digits.xcf][digits.xcf]] file with [[https://www.gimp.org/][GIMP]] and export the
 [[https://en.wikipedia.org/wiki/Texture_atlas][atlas]] as a C source file. You will need to modify it a bit, so it includes the
 =digits.h= header and uses the =GimpImage= type.
